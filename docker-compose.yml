@@ -14,7 +14,8 @@ services:
       - "./app:/event_manager/app/"
       - "./requirements.txt:/event_manager/requirements.txt"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   db:
     image: postgres:15
@@ -25,6 +26,8 @@ services:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready", "-U", "${DATABASE_USER}", "-d", "${DATABASE_NAME}"]
+      interval: 2s
+      retries: 3
     volumes:
       - "./db:/var/lib/postgresql/data"
     ports:

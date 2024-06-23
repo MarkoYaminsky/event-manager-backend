@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 DEBUG = True
 
-DEVELOPED_APPS = ["app.users"]
+DEVELOPED_APPS = ["app.users", "app.events"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",

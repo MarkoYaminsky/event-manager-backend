@@ -18,6 +18,7 @@ def user() -> User:
 
 
 @pytest.fixture
-def authenticated_api_client(user, api_client) -> api_client:
+def authenticated_api_client(user, api_client) -> APIClient:
     api_client.force_authenticate(user)
+    setattr(api_client, "user", user)
     return api_client

@@ -14,6 +14,7 @@ class UserManager(BaseUserManager):
 
 class User(BaseModel, AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=30, unique=True)
+    email = models.EmailField(blank=True)
     is_staff = models.BooleanField(default=False)
 
     USERNAME_FIELD = "username"

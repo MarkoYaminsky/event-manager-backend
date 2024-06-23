@@ -10,6 +10,7 @@ management_urls = [
 
 app_urls = [
     path("users/", include("app.users.urls", namespace="users")),
+    path("events/", include("app.events.urls", namespace="events")),
 ]
 
 urlpatterns = [*management_urls, *app_urls]

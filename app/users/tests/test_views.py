@@ -43,5 +43,5 @@ class TestUserRegistrationApi:
         response = api_client.post(reverse(self.ROUTE), data={"username": self.username, "password": self.password})
 
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.json() == {"id": str(user.id), "username": user.username}
+        assert response.json() == {"id": str(user.id), "username": user.username, "email": ""}
         register_user_mock.assert_called_with(username=self.username, password=self.password)

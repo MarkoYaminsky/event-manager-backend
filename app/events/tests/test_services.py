@@ -6,13 +6,20 @@ from app.events.models import Event
 from app.events.services import (
     create_event,
     delete_event,
+    get_event,
     get_future_events,
+    set_invitees,
     update_event,
 )
 from app.events.tests.factories import EventFactory
 from app.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture
+def send_event_detail_email_mock(mocker):
+    return mocker.patch("app.events.tasks.send_event_detail_email.delay")
 
 
 class TestCreateEventService:
@@ -85,14 +92,27 @@ class TestUpdateEventService:
 
         set_invitees_mock.assert_not_called()
 
+    def test_important_details_change(self, send_event_detail_email_mock):
+        email = "example@gmail.com"
+        event = EventFactory()
+        invitee = UserFactory(email=email)
+        event.invitees.add(invitee)
+
+        update_event(event=event, location=self.location)
+
+        send_event_detail_email_mock.assert_called_once_with(event.id, [invitee.email])
+
 
 class TestDeleteEventService:
-    def test_successful(self):
+    def test_successful(self, mocker):
+        send_event_deletion_email_mock = mocker.patch("app.events.tasks.send_event_deletion_email.delay")
         event = EventFactory()
+        event_id = event.id
 
         delete_event(event)
 
         assert Event.objects.count() == 0
+        send_event_deletion_email_mock.assert_called_once_with(event_id, [])
 
 
 class TestGetFutureEventsService:
@@ -107,3 +127,25 @@ class TestGetFutureEventsService:
 
         assert future_events.count() == 1
         assert future_events.first() == event
+
+
+class TestGetEventService:
+    def test_successful(self):
+        event = EventFactory()
+        EventFactory()
+
+        result = get_event(event.id)
+
+        assert result == event
+
+
+class TestSetInviteesService:
+    def test_successful(self, send_event_detail_email_mock):
+        event = EventFactory()
+        invitee = UserFactory()
+
+        set_invitees(event, [invitee])
+
+        assert event.invitees.count() == 1
+        assert event.invitees.first() == invitee
+        send_event_detail_email_mock.assert_called_once_with(event.id, [])

@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from app.events.models import Event
 from app.events.serializers import (
     EventCreateInputSerializer,
     EventListOutputSerializer,
@@ -43,20 +44,20 @@ class EventRetrieveUpdateDestroyApi(APIView):
 
     @extend_schema(responses=EventRetrieveOutputSerializer)
     def get(self, request, event_id):
-        event = get_object_or_404(get_future_events(self.request.user), id=event_id)
+        event = get_object_or_404(Event, id=event_id)
         serializer = EventRetrieveOutputSerializer(event)
         return Response(serializer.data)
 
     @extend_schema(request=EventUpdateInputSerializer(partial=True))
     def patch(self, request, event_id):
-        event = get_object_or_404(get_future_events(self.request.user), id=event_id)
+        event = get_object_or_404(self.request.user.organized_events.all(), id=event_id)
         serializer = EventUpdateInputSerializer(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         update_event(event, **serializer.validated_data)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def delete(self, request, event_id):
-        event = get_object_or_404(get_future_events(self.request.user), id=event_id)
+        event = get_object_or_404(self.request.user.organized_events.all(), id=event_id)
         delete_event(event)
         return Response(status=status.HTTP_204_NO_CONTENT)
 

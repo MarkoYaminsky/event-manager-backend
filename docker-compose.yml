@@ -25,10 +25,26 @@ services:
       POSTGRES_USER: ${DATABASE_USER}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-U", "${DATABASE_USER}", "-d", "${DATABASE_NAME}"]
+      test: [ "CMD-SHELL", "pg_isready", "-U", "${DATABASE_USER}", "-d", "${DATABASE_NAME}" ]
       interval: 2s
       retries: 3
     volumes:
       - "./db:/var/lib/postgresql/data"
     ports:
       - "5433:5432"
+
+  redis:
+    image: bitnami/redis:latest
+    container_name: manager-redis
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+
+  celery-worker:
+    build: .
+    container_name: manager-celery
+    command: [ 'celery', '-A', 'app.event_manager.celery', 'worker', '-l', 'info' ]
+    volumes:
+      - ".:/event_manager/"
+    depends_on:
+      - db
+      - redis

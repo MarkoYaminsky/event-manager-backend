@@ -47,9 +47,7 @@ class TestEventRetrieveUpdateDestroyApi:
 
     @pytest.fixture
     def event(self, authenticated_api_client) -> Event:
-        event = EventFactory()
-        event.invitees.add(authenticated_api_client.user)
-        return event
+        return EventFactory(organizer=authenticated_api_client.user)
 
     def test_retrieve(self, event, authenticated_api_client):
         response = authenticated_api_client.get(reverse(self.ROUTE, kwargs={"event_id": event.id}))
